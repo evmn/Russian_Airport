@@ -15,20 +15,20 @@ def start_requests():
 		longitude text)''')
 	with open('links', 'r') as f:  # read the list of urls
 		for url in f.readlines():
+			html = urlopen(url)
+			bsObj = BeautifulSoup(html, "lxml")
+			airport = bsObj.find('h1').get_text()
+			wikipage = url
 			try:
-				html = urlopen(url)
-				bsObj = BeautifulSoup(html, "lxml")
-				airport = bsObj.find('h1').get_text()
-				wikipage = url
 				latitude = bsObj.find('span', attrs={"class":"latitude"}).get_text()
 				longitude = bsObj.find('span', attrs={"class":"longitude"}).get_text()
 				print(airport)
 				print(latitude)
+				db.execute('''insert into russian_airport(airport, wikipage, latitude, longitude)
+					values(?,?, ?, ?)
+					''', (airport, wikipage, latitude, longitude))
 			except:
 				pass
-			db.execute('''insert into russian_airport(airport, wikipage, latitude, longitude)
-				values(?,?, ?, ?)
-				''', (airport, wikipage, latitude, longitude))
 			conn.commit()
 		conn.close()
 
